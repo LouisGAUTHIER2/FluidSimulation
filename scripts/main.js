@@ -1,11 +1,8 @@
 // @ts-nocheck
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Vector2 } from 'three';
-import {UV} from 'uv'
-import {Vertices} from 'vertices';
-import {Normals} from 'normals';
-import {Material} from 'material';
 import {Plane} from 'plane';
 
 async function loadData() {
@@ -24,16 +21,17 @@ class SimulationScene {
     scene;
     cube;
     uniforms;
+    settings;
 
     /**
      * 
      * @param {String} fragmentShader 
      */
     constructor(fragmentShader, vertexShader) {
-        this.fov = 75;
+        this.fov = 40;
         this.aspect = window.innerWidth/window.innerHeight;
         this.near = 0.1;
-        this.far = 200;
+        this.far = 10000;
 
         // initialisation
         this.init(fragmentShader, vertexShader);
@@ -45,6 +43,7 @@ class SimulationScene {
     init(fragmentShader, vertexShader) {
         this.initScene();
         this.initMesh(fragmentShader, vertexShader);
+        this.initDebug();
     }
 
     initScene() {
@@ -59,25 +58,40 @@ class SimulationScene {
 
         // création de la scéne
         this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color( 'lightblue' );
 
         // controle de la camera
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.maxPolarAngle = 1.6*Math.PI/4;
+        this.controls.minDistance = 10
         this.controls.update();
+    }
+
+    initDebug() {
+        this.settings = {
+            height: 10,
+        };
+        const gui = new GUI( { width: 300 } );
+        gui.add( this.settings, 'height', 0, 20 ).onChange(this.updateDebug.bind(this));
     }
 
     initMesh(fragmentShader, vertexShader) {
         
 
-		this.cube = new Plane(fragmentShader, vertexShader, new THREE.Vector2(200,200), new THREE.Vector2(500,500));
+		this.cube = new Plane(fragmentShader, vertexShader, new THREE.Vector2(20,20), new THREE.Vector2(500,500));
 		this.scene.add( this.cube.Mesh );
 
-        this.controls.target.set( 100, 0, 100 );
+        this.controls.target.set( 10, 2, 10 );
 
         const colora = 0xFFFFFF;
 		const intensity = 3;
 		const light = new THREE.DirectionalLight( colora, intensity );
-		light.position.set( - 1, 2, 4 );
+		light.position.set( 0, 10, 0);
 		this.scene.add( light );
+    }
+
+    updateDebug() {
+        this.cube.UpdateHeight(this.settings.height);
     }
 
     render(time) {
@@ -87,6 +101,8 @@ class SimulationScene {
         this.cube.Update(time);
 
         this.renderer.render(this.scene, this.camera);
+
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         this.controls.update();
 
