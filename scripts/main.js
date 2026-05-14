@@ -1,10 +1,12 @@
 // @ts-nocheck
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Vector2 } from 'three';
 import {UV} from 'uv'
 import {Vertices} from 'vertices';
 import {Normals} from 'normals';
 import {Material} from 'material';
+import {Plane} from 'plane';
 
 async function loadData() {
     const responseF = await fetch('/scripts/shader/fragmentShader.frag');
@@ -57,64 +59,19 @@ class SimulationScene {
 
         // création de la scéne
         this.scene = new THREE.Scene();
+
+        // controle de la camera
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.update();
     }
 
     initMesh(fragmentShader, vertexShader) {
-        const pos = new Vertices();
-        const uv_t = new UV();
-        const norm = new Normals();
-
-        pos.pushFace(
-            new THREE.Vector3(-1, -1, 0),
-            new THREE.Vector3(1, -1, 0),
-            new THREE.Vector3(-1, 1, 0)
-        );
-        uv_t.pushFace(
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(1, 0),
-            new THREE.Vector2(0, 1)
-        );
-        norm.pushFace(
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, 1)
-        )
-        pos.pushFace(
-            new THREE.Vector3(1,  -1,  0),
-            new THREE.Vector3(1, 1,  0),
-            new THREE.Vector3(-1,  1,  0)
-        );
-        uv_t.pushFace(
-            new THREE.Vector2(1, 0),
-            new THREE.Vector2(1, 1),
-            new THREE.Vector2(0, 1)
-        );
-        norm.pushFace(
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, 1)
-        )
         
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute(pos.ValueName ,pos.Attribute);
-        geometry.setAttribute(uv_t.ValueName ,uv_t.Attribute);
-        geometry.setAttribute(norm.ValueName, norm.Attribute);
-        
-        this.uniforms = {
-            iTime: { value: 0 },
-            iResolution:  { value: new THREE.Vector3() },
-        };
-        
-        const material = new Material(
-            vertexShader,
-            fragmentShader,
-            this.uniforms
-        ).Material
 
-		this.cube = new THREE.Mesh( geometry, material );
-		this.scene.add( this.cube );
+		this.cube = new Plane(fragmentShader, vertexShader, new THREE.Vector2(200,200), new THREE.Vector2(500,500));
+		this.scene.add( this.cube.Mesh );
 
-        this.camera.position.z = 5;
+        this.controls.target.set( 100, 0, 100 );
 
         const colora = 0xFFFFFF;
 		const intensity = 3;
@@ -126,13 +83,12 @@ class SimulationScene {
     render(time) {
         const speed = 0.001;
         const rot = time * speed;
-        this.cube.rotation.x = rot;
-        this.cube.rotation.y = rot;
 
-        this.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
-        this.uniforms.iTime.value = time*0.001;
+        this.cube.Update(time);
 
         this.renderer.render(this.scene, this.camera);
+
+        this.controls.update();
 
         requestAnimationFrame(this.render);
     }

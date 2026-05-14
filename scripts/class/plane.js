@@ -18,11 +18,12 @@ class Plane {
      * @param {THREE.Vector2} size 
      * @param {THREE.Vector2} numCell
      */
-    constructor(vertexShader, fragmentShader, size, numCell) {
+    constructor(fragmentShader, vertexShader, size, numCell) {
         // creation du material
         this.#uniforms = {
             iTime: { value: 0 },
             iResolution:  { value: new THREE.Vector3() },
+            iTexture: {value :null}
         };
 
         this.#material = new THREE.ShaderMaterial({
@@ -81,10 +82,22 @@ class Plane {
 
         // creation du mesh
         this.#mesh = new THREE.Mesh(this.#geometry, this.#material);
+
+        // initialisation des textures
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load("/public/image/test.png")
+
+        this.#uniforms.iTexture.value = texture;
     }
 
     Update(time) {
-        this.#uniforms.iTime = time;
-        this.#uniforms.iResolution.set(window.innerWidth, window.innerHeight, 1)
+        this.#uniforms.iTime.value = time*0.001;
+        this.#uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1)
+    }
+
+    get Mesh() {
+        return this.#mesh;
     }
 }
+
+export {Plane}
