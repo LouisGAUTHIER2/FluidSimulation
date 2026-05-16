@@ -6,7 +6,7 @@ import {UV} from 'uv'
 import {Vertices} from 'vertices';
 import {Normals} from 'normals';
 import {Material} from 'material';
-import {Plane} from 'planex';
+import {Plane} from 'plane';
 
 async function loadData() {
     const fragmentShader = `
