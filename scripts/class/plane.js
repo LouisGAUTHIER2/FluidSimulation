@@ -23,7 +23,6 @@ class Plane {
         this.#uniforms = {
             iTime: { value: 0 },
             iResolution:  { value: new THREE.Vector3() },
-            iTexture: {value :null}
         };
 
         this.#material = new THREE.ShaderMaterial({
@@ -82,12 +81,6 @@ class Plane {
 
         // creation du mesh
         this.#mesh = new THREE.Mesh(this.#geometry, this.#material);
-
-        // initialisation des textures
-        const loader = new THREE.TextureLoader();
-        const texture = loader.load("/public/image/test.png")
-
-        this.#uniforms.iTexture.value = texture;
     }
 
     Update(time) {
